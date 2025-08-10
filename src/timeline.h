@@ -70,6 +70,10 @@ public:
 
         size_t i{ 0 };
         std::stringstream res;
+        if (items.empty()) {
+            return "Empty timeline! Append something to the timeline.\n";
+        }
+
         for (auto& item : items) {
             res << item.to_string() << '\n';
 
