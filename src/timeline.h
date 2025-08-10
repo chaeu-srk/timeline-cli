@@ -23,11 +23,6 @@ struct Item {
     time_point time{};
 
     std::string to_string() { return std::format("{0:%d}/{0:%m} * {1:}", time, name); }
-    // void deserialize(std::ostream& stream) {
-    //     stream << name << '\n'
-    //            << std::chrono::system_clock::to_time_t(time) << '\n'
-    //            << SEPERATOR_STRING << '\n';
-    // }
 
     friend std::ostream& operator<<(std::ostream& stream, const Item& item) {
         stream << item.name << '\n'
@@ -51,8 +46,15 @@ struct Item {
     }
 };
 
+struct Config {
+    bool debug;
+};
+
 class Timeline {
 public:
+    Timeline() = default;
+    Timeline(const Config& config) : debug{ config.debug } { }
+
     void append_to_timeline(std::string name) {
         items.emplace_back(name, std::chrono::system_clock::now());
     }
@@ -95,16 +97,22 @@ public:
             items.push_back(item_buf);
         }
 
-        if (infile.eof()) {
-            std::cout << "Reached end of file.\n";
-        } else if (infile.fail()) {
-            std::cout << "Data format error.\n";
-        } else if (infile.bad()) {
-            std::cout << "Fatal I/O error.\n";
+        if (debug) {
+            if (infile.eof()) {
+                std::cout << "Reached end of file.\n";
+            } else if (infile.fail()) {
+                std::cout << "Data format error.\n";
+            } else if (infile.bad()) {
+                std::cout << "Fatal I/O error.\n";
+            }
         }
     }
 
+    void config(const Config& config) { debug = config.debug; }
+
 private:
+    bool debug = false;
+
     std::vector<Item> items;
 };
 
