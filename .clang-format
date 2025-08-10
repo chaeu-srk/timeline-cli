@@ -1,0 +1,7 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+AccessModifierOffset: -4
+Cpp11BracedListStyle: false 
+SpaceInEmptyBlock: true
+ColumnLimit: 100
+PointerAlignment: Left
