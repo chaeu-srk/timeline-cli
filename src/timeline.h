@@ -17,12 +17,11 @@ namespace timeline {
 using time_point = std::chrono::time_point<std::chrono::system_clock>;
 inline constexpr std::string SEPERATOR_STRING{ "-----" };
 inline constexpr std::string SAVE_FILE_NAME{ "save.txt" };
+inline constexpr int date_string_size{ 6 };
 
 struct Item {
     std::string name{};
     time_point time{};
-
-    std::string to_string() { return std::format("{0:%d}/{0:%m} * {1:}", time, name); }
 
     friend std::ostream& operator<<(std::ostream& stream, const Item& item) {
         stream << item.name << '\n'
@@ -47,13 +46,14 @@ struct Item {
 };
 
 struct Config {
-    bool debug;
+    bool debug = false;
+    bool dont_collapse_timestamps = true;
 };
 
 class Timeline {
 public:
     Timeline() = default;
-    Timeline(const Config& config) : debug{ config.debug } { }
+    Timeline(Config& config) : config{ std::move(config) } { }
 
     void append_to_timeline(std::string name) {
         items.emplace_back(name, std::chrono::system_clock::now());
@@ -66,24 +66,37 @@ public:
     }
 
     std::string to_string() {
-        constexpr int date_string_size{ 6 };
-
         size_t i{ 0 };
         std::stringstream res;
         if (items.empty()) {
             return "Empty timeline! Append something to the timeline.\n";
         }
 
+        std::chrono::year_month_day previous_time_p;
         for (auto& item : items) {
-            res << item.to_string() << '\n';
+            bool collapse = (previous_time_p == floor<std::chrono::days>(item.time)) &&
+                            config.dont_collapse_timestamps;
+            res << display_item(item, collapse) << '\n';
 
             if (i < items.size() - 1) {
                 res << res.fill(' ') << std::setw(date_string_size) << '|' << '\n';
             }
             ++i;
+            previous_time_p = floor<std::chrono::days>(item.time);
         }
 
         return res.str();
+    }
+
+    std::string display_item(const Item& item, bool collapse_timestamps) {
+        std::string res;
+        if (collapse_timestamps) {
+            res = std::string(date_string_size, ' ');
+            res += "* " + item.name;
+        } else {
+            res = std::format("{0:%d}/{0:%m} * {1:}", item.time, item.name);
+        }
+        return res;
     }
 
     void write_to_save() {
@@ -101,7 +114,7 @@ public:
             items.push_back(item_buf);
         }
 
-        if (debug) {
+        if (config.debug) {
             if (infile.eof()) {
                 std::cout << "Reached end of file.\n";
             } else if (infile.fail()) {
@@ -112,10 +125,8 @@ public:
         }
     }
 
-    void config(const Config& config) { debug = config.debug; }
-
 private:
-    bool debug = false;
+    Config config;
 
     std::vector<Item> items;
 };

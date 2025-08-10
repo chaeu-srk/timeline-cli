@@ -5,16 +5,16 @@ int main(int argc, char* argv[]) {
     CLI::App app{};
 
     auto append = app.add_subcommand("append", "append to the timeline");
-    bool debug_flag;
-    app.add_flag("-d,--debug", debug_flag, "add debug printing");
+
+    timeline::Config config;
+    app.add_flag("-d,--debug", config.debug, "add debug printing");
+    app.add_flag("--no-collapse-dates", config.dont_collapse_timestamps, "Don't collapse dates");
 
     std::string append_buf;
     append->add_option("-n,--name", append_buf, "name to append");
 
-    timeline::Config config;
-    config.debug = debug_flag;
-
     CLI11_PARSE(app, argc, argv);
+
     timeline::Timeline tl{ config };
     tl.read_from_save();
 
@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
 
         tl.append_to_timeline(append_buf);
         std::cout << tl.to_string();
+        tl.write_to_save();
 
     } else {
         std::cout << tl.to_string();
