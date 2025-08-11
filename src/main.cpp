@@ -1,5 +1,6 @@
 #include "timeline.h"
 #include <CLI11.hpp>
+#include <string>
 
 int main(int argc, char* argv[]) {
     CLI::App app{};
@@ -22,7 +23,7 @@ int main(int argc, char* argv[]) {
     if (*append) {
         if (append_buf.empty()) {
             std::cout << "Append new item: \n";
-            std::cin >> append_buf;
+            std::getline(std::cin, append_buf);
             // TODO: handle errors
         }
 
