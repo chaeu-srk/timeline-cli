@@ -125,6 +125,11 @@ public:
         }
     }
 
+    void reset() {
+        items.clear();
+        write_to_save();
+    }
+
 private:
     Config config;
 

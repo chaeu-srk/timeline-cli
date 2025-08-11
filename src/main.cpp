@@ -3,12 +3,13 @@
 
 int main(int argc, char* argv[]) {
     CLI::App app{};
+    timeline::Config config;
 
     auto append = app.add_subcommand("append", "append to the timeline");
 
-    timeline::Config config;
     app.add_flag("-d,--debug", config.debug, "add debug printing");
     app.add_flag("--no-collapse-dates", config.dont_collapse_timestamps, "Don't collapse dates");
+    auto reset = app.add_flag("--hard-reset", "reset saved timeline");
 
     std::string append_buf;
     append->add_option("-n,--name", append_buf, "name to append");
@@ -28,6 +29,9 @@ int main(int argc, char* argv[]) {
         tl.append_to_timeline(append_buf);
         std::cout << tl.to_string();
         tl.write_to_save();
+
+    } else if (reset->count()) {
+        tl.reset();
 
     } else {
         std::cout << tl.to_string();
