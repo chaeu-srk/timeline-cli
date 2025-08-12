@@ -1,5 +1,7 @@
 #include "timeline.h"
+#include "filesys.h"
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 
@@ -28,6 +30,18 @@ std::ostream& operator<<(std::ostream& stream, const Item& item) {
 
 // ------------------------------------------------------------------
 // TimeLine implementations
+
+void Timeline::init() {
+    try {
+        save_file_path = filesys::get_cached_project_path();
+    } catch (const std::invalid_argument& e) {
+        if (config.debug) {
+            std::cerr << e.what();
+        }
+        std::cout << "No projects! Create a new project\n";
+        exit(1);
+    }
+}
 
 void Timeline::append_to_timeline(std::string name) {
     items.emplace_back(name, std::chrono::system_clock::now());
@@ -76,14 +90,14 @@ std::string Timeline::display_item(const Item& item, bool collapse_timestamps) {
 }
 
 void Timeline::write_to_save() {
-    std::ofstream outfile{ SAVE_FILE_NAME };
+    std::ofstream outfile{ save_file_path };
     for (auto& item : items) {
         outfile << item;
     }
 }
 
 void Timeline::read_from_save() {
-    std::ifstream infile{ SAVE_FILE_NAME };
+    std::ifstream infile{ save_file_path };
     Item item_buf;
 
     while (infile >> item_buf) {

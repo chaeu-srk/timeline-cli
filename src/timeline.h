@@ -1,6 +1,8 @@
 #pragma once
+#include "filesys.h"
 #include <chrono>
 #include <cstddef>
+#include <filesystem>
 #include <iostream>
 #include <istream>
 #include <ostream>
@@ -33,8 +35,7 @@ struct Config {
 
 class Timeline {
 public:
-    Timeline() = default;
-    Timeline(Config& config) : config{ std::move(config) } { }
+    Timeline(Config& config) : config{ std::move(config) } { init(); }
 
     void append_to_timeline(std::string name);
 
@@ -70,6 +71,13 @@ private:
     Config config;
 
     std::vector<Item> items;
+    std::filesystem::path save_file_path;
+
+    /**
+     * @brief Sets the save_file_path
+     * Gaurenteed to run on object creation
+     */
+    void init();
 };
 
 } // namespace timeline
